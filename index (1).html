@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Green-Chain · Decision Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg0:#060910;--bg1:#0a0f1a;--bg2:#0e1520;--bg3:#121c2b;
+  --surface:#151f30;--raised:#1a2638;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.10);
+  --text0:#f0f4fa;--text1:#bcc8d8;--text2:#6e86a0;--text3:#3d5470;
+  --teal:#2dd4a0;--teal2:#1eaa7e;--tealg:rgba(45,212,160,0.12);--tealb:rgba(45,212,160,0.06);
+  --blue:#5b9cf6;--blueg:rgba(91,156,246,0.12);
+  --amber:#f0a444;--amberg:rgba(240,164,68,0.12);
+  --violet:#a78bfa;--violetg:rgba(167,139,250,0.12);
+  --red:#f16876;--redg:rgba(241,104,118,0.12);
+  --r:10px;--r2:14px;--r3:18px;
+  --font:'Outfit',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font);background:var(--bg0);color:var(--text0);min-height:100vh;overflow-x:hidden;font-size:14px;}
+
+/* Background */
+.atmo{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.atmo-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.4;}
+.atmo-b1{width:600px;height:400px;top:-100px;left:-100px;background:radial-gradient(ellipse,rgba(45,212,160,0.15) 0%,transparent 70%);animation:drift1 18s ease-in-out infinite alternate;}
+.atmo-b2{width:500px;height:500px;bottom:-100px;right:-100px;background:radial-gradient(ellipse,rgba(91,156,246,0.12) 0%,transparent 70%);animation:drift2 22s ease-in-out infinite alternate;}
+.atmo-b3{width:300px;height:300px;top:50%;left:50%;background:radial-gradient(ellipse,rgba(167,139,250,0.07) 0%,transparent 70%);animation:drift3 15s ease-in-out infinite alternate;}
+@keyframes drift1{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,40px) scale(1.1);}}
+@keyframes drift2{from{transform:translate(0,0) scale(1);}to{transform:translate(-50px,-60px) scale(1.15);}}
+@keyframes drift3{from{transform:translate(-50%,-50%) scale(1);}to{transform:translate(-45%,-55%) scale(1.2);}}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.014) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.014) 1px,transparent 1px);background-size:52px 52px;}
+
+/* App Shell */
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{grid-row:1/-1;background:rgba(10,15,26,0.88);backdrop-filter:blur(24px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0 0 24px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.brand-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--teal),#1890a0);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 0 16px rgba(45,212,160,0.35);}
+.brand-name{font-size:15px;font-weight:700;color:var(--text0);letter-spacing:-0.3px;line-height:1.2;}
+.brand-sub{font-size:10px;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;font-family:var(--mono);}
+.brand-ver{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono);}
+.nav-section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;padding:12px 20px 6px;font-family:var(--mono);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;margin:1px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.18s;text-decoration:none;position:relative;}
+.nav-item:hover{color:var(--text0);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:var(--teal);background:var(--tealg);border:1px solid rgba(45,212,160,0.15);}
+.nav-item.active::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 3px 3px 0;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+.nav-spacer{flex:1;}
+.sidebar-bottom{padding:16px 16px 0;border-top:1px solid var(--border);margin-top:12px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--raised);border:1px solid var(--border);}
+.user-av{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--violet));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:600;color:var(--text0);}
+.user-role{font-size:10px;color:var(--text3);}
+
+/* Topbar */
+.topbar{grid-column:2;height:58px;background:rgba(10,15,26,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:90;}
+.topbar-page{font-size:16px;font-weight:700;color:var(--text0);letter-spacing:-0.3px;}
+.topbar-crumb{font-size:12px;color:var(--text3);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--tealg);border:1px solid rgba(45,212,160,0.2);font-size:11px;font-weight:600;color:var(--teal);font-family:var(--mono);letter-spacing:0.3px;}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:glow-pulse 2s ease-in-out infinite;flex-shrink:0;}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 4px var(--teal);opacity:1;}50%{box-shadow:0 0 10px var(--teal),0 0 20px rgba(45,212,160,0.4);opacity:0.7;}}
+.tb-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border2);color:var(--text1);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:var(--font);}
+.tb-btn:hover{background:var(--raised);border-color:rgba(255,255,255,0.14);color:var(--text0);}
+.tb-btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal2));border-color:transparent;color:#060910;}
+.tb-btn-primary:hover{box-shadow:0 4px 18px rgba(45,212,160,0.4);transform:translateY(-1px);}
+
+/* Page */
+.page{grid-column:2;padding:24px 28px 64px;overflow-x:hidden;}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);position:relative;overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
+.card:hover{border-color:var(--border2);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.shine{position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,0.022) 0%,transparent 55%);}
+.cp{padding:20px 22px;}
+
+.card-title{font-size:13px;font-weight:600;color:var(--text0);letter-spacing:-0.1px;}
+.card-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.ch-left{display:flex;flex-direction:column;gap:2px;}
+
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:var(--mono);letter-spacing:0.3px;}
+.tag-teal{background:var(--tealg);border:1px solid rgba(45,212,160,0.2);color:var(--teal);}
+.tag-blue{background:var(--blueg);border:1px solid rgba(91,156,246,0.2);color:var(--blue);}
+.tag-amber{background:var(--amberg);border:1px solid rgba(240,164,68,0.2);color:var(--amber);}
+.tag-violet{background:var(--violetg);border:1px solid rgba(167,139,250,0.2);color:var(--violet);}
+
+.ca-teal::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),transparent);border-radius:var(--r2) var(--r2) 0 0;}
+.ca-blue::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),transparent);border-radius:var(--r2) var(--r2) 0 0;}
+.ca-amber::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--amber),transparent);border-radius:var(--r2) var(--r2) 0 0;}
+.ca-violet::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),transparent);border-radius:var(--r2) var(--r2) 0 0;}
+
+/* Grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.stack{display:flex;flex-direction:column;gap:16px;}
+
+/* KPI */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:all 0.2s;}
+.kpi:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.kpi-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.5px;margin-bottom:8px;text-transform:uppercase;font-family:var(--mono);}
+.kpi-val{font-size:26px;font-weight:800;color:var(--text0);letter-spacing:-1px;line-height:1;margin-bottom:6px;}
+.kpi-delta{font-size:11px;font-weight:500;color:var(--text3);}
+.kpi-glow{position:absolute;bottom:-10px;right:-10px;width:60px;height:60px;border-radius:50%;opacity:0.12;filter:blur(20px);}
+
+/* Hero Chart Card */
+.hero-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;position:relative;margin-bottom:20px;}
+.hero-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--blue),var(--violet));}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;padding:22px 24px 14px;flex-wrap:wrap;gap:16px;}
+.hero-metrics{display:flex;gap:0;flex-wrap:wrap;}
+.hm-item{padding:0 24px;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--border);}
+.hm-item:first-child{padding-left:0;}
+.hm-item:last-child{border-right:none;}
+.hm-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;}
+.hm-num{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.hm-sub{font-size:10px;color:var(--text3);}
+.hero-chart-wrap{height:130px;position:relative;}
+.chart-fade{position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,var(--surface));pointer-events:none;z-index:1;}
+
+/* Sliders */
+.slider-block{display:flex;flex-direction:column;gap:16px;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+.slider-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.slider-info{flex:1;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:7px;}
+.slider-name{font-size:12px;font-weight:600;color:var(--text1);}
+.slider-pct{font-family:var(--mono);font-size:13px;font-weight:600;}
+.slider-track{position:relative;}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;border-radius:3px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;cursor:pointer;transition:box-shadow 0.15s;}
+.r-amber::-webkit-slider-thumb{background:var(--amber);box-shadow:0 0 6px rgba(240,164,68,0.5);}
+.r-teal::-webkit-slider-thumb{background:var(--teal);box-shadow:0 0 6px rgba(45,212,160,0.5);}
+.r-violet::-webkit-slider-thumb{background:var(--violet);box-shadow:0 0 6px rgba(167,139,250,0.5);}
+.r-amber::-webkit-slider-thumb:hover{box-shadow:0 0 12px rgba(240,164,68,0.8);}
+.r-teal::-webkit-slider-thumb:hover{box-shadow:0 0 12px rgba(45,212,160,0.8);}
+.r-violet::-webkit-slider-thumb:hover{box-shadow:0 0 12px rgba(167,139,250,0.8);}
+.sfill{position:absolute;top:0;left:0;height:3px;border-radius:3px;pointer-events:none;transition:width 0.2s ease;margin-top:0;}
+
+/* Scenario Cards */
+.sc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border);}
+.sc-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:7px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:0.5px;}
+.sc-a{background:rgba(91,156,246,0.12);border:1px solid rgba(91,156,246,0.22);color:var(--blue);}
+.sc-b{background:rgba(45,212,160,0.10);border:1px solid rgba(45,212,160,0.22);color:var(--teal);}
+.sc-title{font-size:13px;font-weight:700;color:var(--text0);margin-top:3px;}
+.sc-sub{font-size:11px;color:var(--text3);}
+.sc-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0;}
+
+/* ── Scenario card body & option blocks ── */
+.sc-body{padding:14px 20px 20px;display:flex;flex-direction:column;gap:14px;}
+.frow{display:flex;flex-direction:column;gap:7px;}
+.flabel{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;font-family:var(--mono);}
+
+/* Hidden <select> elements keep IDs intact for JS */
+.fsel-hidden{display:none;}
+
+/* 3-column option picker grid */
+.opt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+
+/* Individual option block */
+.opt-block{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;padding:9px 6px 8px;
+  border-radius:9px;cursor:pointer;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  transition:background 0.18s,border-color 0.18s,transform 0.16s,box-shadow 0.18s;
+  user-select:none;position:relative;overflow:hidden;
+  text-align:center;
+}
+.opt-block::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+.opt-block:hover{
+  background:rgba(255,255,255,0.07);
+  border-color:rgba(255,255,255,0.14);
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.3);
+}
+.opt-block:active{transform:translateY(0);transition-duration:0.08s;}
+
+/* Selected state — scenario A (blue) */
+.sc-a-card .opt-block.selected{
+  background:rgba(91,156,246,0.13);
+  border-color:rgba(91,156,246,0.5);
+  box-shadow:0 0 0 1px rgba(91,156,246,0.25),0 4px 20px rgba(91,156,246,0.2);
+}
+.sc-a-card .opt-block.selected .opt-icon{filter:drop-shadow(0 0 6px rgba(91,156,246,0.7));}
+.sc-a-card .opt-block.selected .opt-label{color:var(--blue);}
+
+/* Selected state — scenario B (teal) */
+.sc-b-card .opt-block.selected{
+  background:rgba(45,212,160,0.11);
+  border-color:rgba(45,212,160,0.5);
+  box-shadow:0 0 0 1px rgba(45,212,160,0.2),0 4px 20px rgba(45,212,160,0.18);
+}
+.sc-b-card .opt-block.selected .opt-icon{filter:drop-shadow(0 0 6px rgba(45,212,160,0.7));}
+.sc-b-card .opt-block.selected .opt-label{color:var(--teal);}
+
+/* Selected check pip */
+.opt-block.selected::after{
+  content:'✓';position:absolute;top:4px;right:6px;
+  font-size:8px;font-weight:700;opacity:0.7;
+  font-family:var(--mono);
+}
+.sc-a-card .opt-block.selected::after{color:var(--blue);}
+.sc-b-card .opt-block.selected::after{color:var(--teal);}
+
+.opt-icon{font-size:18px;line-height:1;transition:filter 0.18s;}
+.opt-label{
+  font-size:10px;font-weight:600;color:var(--text2);
+  line-height:1.2;transition:color 0.18s;
+  font-family:var(--font);letter-spacing:0.1px;
+}
+
+/* Responsive: on very narrow screens collapse to 1 column */
+@media(max-width:420px){.opt-grid{grid-template-columns:1fr 1fr;}}
+
+/* Results */
+.hidden{display:none!important;}
+.sec-wrap{margin:24px 0 16px;}
+.sec-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:4px;}
+.sec-title{font-size:19px;font-weight:800;color:var(--text0);letter-spacing:-0.5px;}
+
+/* Winner Bar */
+.wb{border-radius:var(--r2);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;background:linear-gradient(135deg,rgba(45,212,160,0.09),rgba(91,156,246,0.05));border:1px solid rgba(45,212,160,0.2);margin-bottom:18px;position:relative;overflow:hidden;}
+.wb::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--teal),var(--blue),transparent);}
+.wb-tag{font-size:10px;font-weight:700;color:var(--teal);letter-spacing:1px;text-transform:uppercase;font-family:var(--mono);margin-bottom:4px;}
+.wb-title{font-size:18px;font-weight:800;letter-spacing:-0.4px;}
+.wb-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.wb-scores{display:flex;align-items:center;gap:20px;}
+.wbs{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.wbs-val{font-size:22px;font-weight:800;letter-spacing:-0.8px;}
+.wbs-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* Chart */
+.chart-wrap{height:220px;display:flex;align-items:center;justify-content:center;}
+.rso-val{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.rso-lbl{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* Pillar Bars */
+.pbars{display:flex;flex-direction:column;gap:9px;padding-top:4px;}
+.pb-row{display:flex;align-items:center;gap:10px;}
+.pb-lbl{font-size:11px;color:var(--text2);width:88px;flex-shrink:0;}
+.pb-track{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.pb-fill{height:100%;border-radius:5px;transition:width 0.7s cubic-bezier(.34,1.56,.64,1);}
+.pb-val{font-family:var(--mono);font-size:11px;color:var(--text1);width:30px;text-align:right;}
+
+/* Heatmap */
+.hm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.hmc{border-radius:10px;padding:14px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--border);transition:all 0.2s;}
+.hmc:hover{transform:translateY(-2px);}
+.hmc-icon{font-size:18px;}
+.hmc-name{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.5px;}
+.hmc-val{font-size:22px;font-weight:800;letter-spacing:-0.8px;line-height:1;}
+.hmc-bar{width:100%;height:3px;border-radius:3px;}
+.hmc-tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;font-family:var(--mono);}
+
+/* Gauge */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 0;}
+.gauge-svg-wrap{position:relative;width:160px;height:92px;}
+.gauge-val{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:800;letter-spacing:-1px;z-index:1;}
+.gauge-lbl{font-size:11px;font-weight:600;}
+
+/* Projection */
+.proj-inner{padding:18px 20px;}
+.proj-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.proj-big{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;}
+.proj-growth{font-size:13px;font-weight:600;margin-top:4px;}
+.pr-rows{display:flex;flex-direction:column;gap:0;}
+.pr-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.pr-row:last-child{border-bottom:none;}
+.pr-label{font-size:12px;color:var(--text2);}
+.pr-badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;background:var(--tealg);color:var(--teal);}
+
+/* AI */
+.ai-card{background:linear-gradient(135deg,rgba(167,139,250,0.07) 0%,rgba(91,156,246,0.04) 100%);border:1px solid rgba(167,139,250,0.18);border-radius:var(--r2);padding:22px 24px;position:relative;overflow:hidden;}
+.ai-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--violet),var(--blue),transparent);}
+.ai-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);color:var(--violet);font-size:11px;font-weight:600;font-family:var(--mono);margin-bottom:14px;letter-spacing:0.3px;}
+.ai-dot{width:5px;height:5px;border-radius:50%;background:var(--violet);animation:glow-pulse 2s infinite;}
+.ai-quote{font-size:48px;color:rgba(167,139,250,0.15);font-family:Georgia,serif;line-height:0.8;display:block;margin-bottom:8px;}
+.ai-text{font-size:14px;line-height:1.78;color:var(--text1);}
+
+/* Divider */
+hr.d{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+/* Animations */
+.fu{animation:fadeUp 0.45s ease both;}
+.fu1{animation-delay:0.05s;}.fu2{animation-delay:0.10s;}.fu3{animation-delay:0.15s;}.fu4{animation-delay:0.20s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+/* Responsive */
+@media(max-width:1100px){
+  .shell{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;}
+  .sidebar{grid-row:1;grid-column:1;height:auto;position:static;flex-direction:row;flex-wrap:wrap;padding:12px 16px;gap:8px;border-right:none;border-bottom:1px solid var(--border);}
+  .sidebar-brand{border-bottom:none;margin-bottom:0;padding:0 12px 0 0;border-right:1px solid var(--border);}
+  .nav-section-label{display:none;}
+  .sidebar-bottom{border-top:none;margin-top:0;padding:0 0 0 12px;border-left:1px solid var(--border);}
+  .nav-spacer{display:none;}
+  .topbar{grid-column:1;}
+  .page{grid-column:1;padding:16px;}
+  .g4{grid-template-columns:repeat(2,1fr);}
+  .g2,.g3{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .g4{grid-template-columns:1fr 1fr;}
+  .hm-grid{grid-template-columns:1fr 1fr 1fr;}
+  .wb-scores{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="atmo"><div class="atmo-blob atmo-b1"></div><div class="atmo-blob atmo-b2"></div><div class="atmo-blob atmo-b3"></div></div>
+<div class="grid-overlay"></div>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">⬡</div>
+      <div><div class="brand-name">GreenChain</div><div class="brand-sub">Decision Portal</div></div>
+    </div>
+    <div class="brand-ver">v2.1 · Enterprise</div>
+  </div>
+
+  <div class="nav-section-label">Platform</div>
+  <a class="nav-item active" href="#overview"><span style="font-size:14px;">▦</span> Overview</a>
+  <a class="nav-item" href="#scenarios"><span style="font-size:14px;">⇄</span> Scenarios</a>
+  <div class="nav-section-label">Analytics</div>
+  <a class="nav-item" href="#analytics"><span style="font-size:14px;">◎</span> Radar Analysis</a>
+  <a class="nav-item" href="#heatmap"><span style="font-size:14px;">▤</span> Heatmap</a>
+  <a class="nav-item" href="#risk"><span style="font-size:14px;">⚠</span> Risk Index</a>
+  <a class="nav-item" href="#projection"><span style="font-size:14px;">↗</span> Projection</a>
+  <a class="nav-item" href="#ai"><span style="font-size:14px;">✦</span> AI Insights</a>
+  <div class="nav-spacer"></div>
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="user-av">CE</div>
+      <div><div class="user-name">Chief Executive</div><div class="user-role">Admin · Full Access</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="topbar-crumb">Platform /</span>
+    <span class="topbar-page">Decision Intelligence</span>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill"><div class="pulse"></div>Live Simulation</div>
+    <button class="tb-btn tb-btn-primary" onclick="simulate()">▶ Run Simulation</button>
+  </div>
+</header>
+
+<!-- PAGE -->
+<main class="page" id="overview">
+
+  <!-- KPI Row -->
+  <div class="g4" style="margin-bottom:18px;">
+    <div class="kpi ca-teal fu">
+      <div class="kpi-label">Scenario A · Score</div>
+      <div class="kpi-val" id="kpi-a">—</div>
+      <div class="kpi-delta" id="kpi-a-delta">Balanced Decision</div>
+      <div class="kpi-glow" style="background:var(--teal);"></div>
+    </div>
+    <div class="kpi ca-blue fu fu1">
+      <div class="kpi-label">Scenario B · Score</div>
+      <div class="kpi-val" id="kpi-b">—</div>
+      <div class="kpi-delta" id="kpi-b-delta">Balanced Decision</div>
+      <div class="kpi-glow" style="background:var(--blue);"></div>
+    </div>
+    <div class="kpi ca-amber fu fu2">
+      <div class="kpi-label">Recommended</div>
+      <div class="kpi-val" id="kpi-winner" style="font-size:18px;padding-top:4px;">—</div>
+      <div class="kpi-delta" id="kpi-delta">Point advantage</div>
+      <div class="kpi-glow" style="background:var(--amber);"></div>
+    </div>
+    <div class="kpi ca-violet fu fu3">
+      <div class="kpi-label">Avg Risk Index</div>
+      <div class="kpi-val" id="kpi-risk">—</div>
+      <div class="kpi-delta" id="kpi-risk-lbl">Combined risk</div>
+      <div class="kpi-glow" style="background:var(--violet);"></div>
+    </div>
+  </div>
+
+  <!-- Hero Trend Card -->
+  <div class="hero-card fu fu1">
+    <div class="hero-top">
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;">Balanced Score Trend</div>
+        <div style="font-size:19px;font-weight:800;letter-spacing:-0.5px;">Real-Time Decision Analysis</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Updates on each simulation run</div>
+      </div>
+      <div class="hero-metrics">
+        <div class="hm-item"><div class="hm-lbl">Scenario A</div><div class="hm-num" id="hm-a" style="color:var(--blue);">—</div><div class="hm-sub">Balanced</div></div>
+        <div class="hm-item"><div class="hm-lbl">Scenario B</div><div class="hm-num" id="hm-b" style="color:var(--teal);">—</div><div class="hm-sub">Balanced</div></div>
+        <div class="hm-item"><div class="hm-lbl">Proj. A (5yr)</div><div class="hm-num" id="hm-pa" style="color:var(--amber);">—</div><div class="hm-sub">Strategic Value</div></div>
+        <div class="hm-item"><div class="hm-lbl">Proj. B (5yr)</div><div class="hm-num" id="hm-pb" style="color:var(--violet);">—</div><div class="hm-sub">Strategic Value</div></div>
+      </div>
+    </div>
+    <div class="hero-chart-wrap"><canvas id="trendChart"></canvas><div class="chart-fade"></div></div>
+  </div>
+
+  <!-- CEO Controls + Quick Insight -->
+  <div class="g2" id="scenarios" style="margin-bottom:16px;">
+    <div class="card ca-teal fu">
+      <div class="shine"></div>
+      <div class="cp">
+        <div class="ch"><div class="ch-left"><div class="card-title">CEO Priority Weights</div><div class="card-sub">Adjust strategic importance per pillar</div></div><span class="tag tag-teal">⚖ Live</span></div>
+        <div class="slider-block">
+          <div class="slider-row">
+            <div class="slider-icon" style="background:var(--amberg);">💰</div>
+            <div class="slider-info">
+              <div class="slider-head"><span class="slider-name">Financial</span><span class="slider-pct" id="wf-d" style="color:var(--amber);">33%</span></div>
+              <div class="slider-track" style="position:relative;">
+                <div id="wf-f" class="sfill" style="background:var(--amber);width:33%;height:3px;border-radius:3px;"></div>
+                <input type="range" class="r-amber" id="wf" min="0" max="100" value="33" oninput="updateWeights()" style="margin-top:-3px;"/>
+              </div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-icon" style="background:var(--tealg);">🌿</div>
+            <div class="slider-info">
+              <div class="slider-head"><span class="slider-name">Environmental</span><span class="slider-pct" id="we-d" style="color:var(--teal);">33%</span></div>
+              <div class="slider-track" style="position:relative;">
+                <div id="we-f" class="sfill" style="background:var(--teal);width:33%;height:3px;border-radius:3px;"></div>
+                <input type="range" class="r-teal" id="we" min="0" max="100" value="33" oninput="updateWeights()" style="margin-top:-3px;"/>
+              </div>
+            </div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-icon" style="background:var(--violetg);">🤝</div>
+            <div class="slider-info">
+              <div class="slider-head"><span class="slider-name">Ethical</span><span class="slider-pct" id="wt-d" style="color:var(--violet);">34%</span></div>
+              <div class="slider-track" style="position:relative;">
+                <div id="wt-f" class="sfill" style="background:var(--violet);width:34%;height:3px;border-radius:3px;"></div>
+                <input type="range" class="r-violet" id="wt" min="0" max="100" value="34" oninput="updateWeights()" style="margin-top:-3px;"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card ca-amber fu fu1">
+      <div class="shine"></div>
+      <div class="cp">
+        <div class="ch"><div class="ch-left"><div class="card-title">Decision Recommendation</div><div class="card-sub">Current weighted analysis output</div></div><span class="tag tag-amber">⚡ Auto</span></div>
+        <div id="quick-insight"><div style="font-size:12px;color:var(--text3);">Run a simulation to see the recommendation.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Cards -->
+  <div class="g2" style="margin-bottom:16px;">
+
+    <!-- ══ SCENARIO A ══ -->
+    <div class="card ca-blue fu sc-a-card">
+      <div class="shine"></div>
+      <div class="sc-head">
+        <div><span class="sc-badge sc-a">SCN A</span><div class="sc-title" style="margin-top:7px;">Baseline Strategy</div><div class="sc-sub">Current operational mode</div></div>
+        <div class="sc-av" style="background:var(--blueg);border:1px solid rgba(91,156,246,0.2);color:var(--blue);">A</div>
+      </div>
+
+      <!-- Hidden selects preserve all original IDs & JS references -->
+      <select class="fsel-hidden" id="a_energy_source"><option value="coal" selected>Coal</option><option value="hybrid">Hybrid</option><option value="solar">Solar</option></select>
+      <select class="fsel-hidden" id="a_supplier_type"><option value="low_cost" selected>Low Cost</option><option value="local">Local</option><option value="esg">ESG</option></select>
+      <select class="fsel-hidden" id="a_transport_mode"><option value="air" selected>Air</option><option value="ship">Ship</option><option value="rail">Rail</option></select>
+      <select class="fsel-hidden" id="a_automation_level"><option value="low" selected>Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+      <select class="fsel-hidden" id="a_carbon_offset"><option value="none" selected>None</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select>
+
+      <div class="sc-body">
+
+        <!-- Energy Source -->
+        <div class="frow">
+          <div class="flabel"><span>⚡</span>Energy Source</div>
+          <div class="opt-grid" data-target="a_energy_source">
+            <div class="opt-block selected" data-value="coal">
+              <span class="opt-icon">🏭</span><span class="opt-label">Coal</span>
+            </div>
+            <div class="opt-block" data-value="hybrid">
+              <span class="opt-icon">⚡</span><span class="opt-label">Hybrid</span>
+            </div>
+            <div class="opt-block" data-value="solar">
+              <span class="opt-icon">☀️</span><span class="opt-label">Solar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier Type -->
+        <div class="frow">
+          <div class="flabel"><span>🔗</span>Supplier Type</div>
+          <div class="opt-grid" data-target="a_supplier_type">
+            <div class="opt-block selected" data-value="low_cost">
+              <span class="opt-icon">🌍</span><span class="opt-label">Low Cost</span>
+            </div>
+            <div class="opt-block" data-value="local">
+              <span class="opt-icon">🏢</span><span class="opt-label">Local</span>
+            </div>
+            <div class="opt-block" data-value="esg">
+              <span class="opt-icon">🌱</span><span class="opt-label">ESG Global</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transport Mode -->
+        <div class="frow">
+          <div class="flabel"><span>🚚</span>Transport Mode</div>
+          <div class="opt-grid" data-target="a_transport_mode">
+            <div class="opt-block selected" data-value="air">
+              <span class="opt-icon">✈️</span><span class="opt-label">Air</span>
+            </div>
+            <div class="opt-block" data-value="ship">
+              <span class="opt-icon">🚢</span><span class="opt-label">Ship</span>
+            </div>
+            <div class="opt-block" data-value="rail">
+              <span class="opt-icon">🚆</span><span class="opt-label">Rail</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automation Level -->
+        <div class="frow">
+          <div class="flabel"><span>🤖</span>Automation Level</div>
+          <div class="opt-grid" data-target="a_automation_level">
+            <div class="opt-block selected" data-value="low">
+              <span class="opt-icon">👷</span><span class="opt-label">Low</span>
+            </div>
+            <div class="opt-block" data-value="medium">
+              <span class="opt-icon">⚙️</span><span class="opt-label">Medium</span>
+            </div>
+            <div class="opt-block" data-value="high">
+              <span class="opt-icon">🤖</span><span class="opt-label">High</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carbon Offset -->
+        <div class="frow">
+          <div class="flabel"><span>🌱</span>Carbon Offset</div>
+          <div class="opt-grid" data-target="a_carbon_offset">
+            <div class="opt-block selected" data-value="none">
+              <span class="opt-icon">❌</span><span class="opt-label">None</span>
+            </div>
+            <div class="opt-block" data-value="moderate">
+              <span class="opt-icon">🌿</span><span class="opt-label">Moderate</span>
+            </div>
+            <div class="opt-block" data-value="aggressive">
+              <span class="opt-icon">🌎</span><span class="opt-label">Aggressive</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /Scenario A -->
+
+    <!-- ══ SCENARIO B ══ -->
+    <div class="card ca-teal fu fu1 sc-b-card">
+      <div class="shine"></div>
+      <div class="sc-head">
+        <div><span class="sc-badge sc-b">SCN B</span><div class="sc-title" style="margin-top:7px;">Proposed Strategy</div><div class="sc-sub">Future operational model</div></div>
+        <div class="sc-av" style="background:var(--tealg);border:1px solid rgba(45,212,160,0.2);color:var(--teal);">B</div>
+      </div>
+
+      <!-- Hidden selects — Scenario B defaults -->
+      <select class="fsel-hidden" id="b_energy_source"><option value="coal">Coal</option><option value="hybrid">Hybrid</option><option value="solar" selected>Solar</option></select>
+      <select class="fsel-hidden" id="b_supplier_type"><option value="low_cost">Low Cost</option><option value="local">Local</option><option value="esg" selected>ESG</option></select>
+      <select class="fsel-hidden" id="b_transport_mode"><option value="air">Air</option><option value="ship">Ship</option><option value="rail" selected>Rail</option></select>
+      <select class="fsel-hidden" id="b_automation_level"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+      <select class="fsel-hidden" id="b_carbon_offset"><option value="none">None</option><option value="moderate">Moderate</option><option value="aggressive" selected>Aggressive</option></select>
+
+      <div class="sc-body">
+
+        <!-- Energy Source -->
+        <div class="frow">
+          <div class="flabel"><span>⚡</span>Energy Source</div>
+          <div class="opt-grid" data-target="b_energy_source">
+            <div class="opt-block" data-value="coal">
+              <span class="opt-icon">🏭</span><span class="opt-label">Coal</span>
+            </div>
+            <div class="opt-block" data-value="hybrid">
+              <span class="opt-icon">⚡</span><span class="opt-label">Hybrid</span>
+            </div>
+            <div class="opt-block selected" data-value="solar">
+              <span class="opt-icon">☀️</span><span class="opt-label">Solar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier Type -->
+        <div class="frow">
+          <div class="flabel"><span>🔗</span>Supplier Type</div>
+          <div class="opt-grid" data-target="b_supplier_type">
+            <div class="opt-block" data-value="low_cost">
+              <span class="opt-icon">🌍</span><span class="opt-label">Low Cost</span>
+            </div>
+            <div class="opt-block" data-value="local">
+              <span class="opt-icon">🏢</span><span class="opt-label">Local</span>
+            </div>
+            <div class="opt-block selected" data-value="esg">
+              <span class="opt-icon">🌱</span><span class="opt-label">ESG Global</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transport Mode -->
+        <div class="frow">
+          <div class="flabel"><span>🚚</span>Transport Mode</div>
+          <div class="opt-grid" data-target="b_transport_mode">
+            <div class="opt-block" data-value="air">
+              <span class="opt-icon">✈️</span><span class="opt-label">Air</span>
+            </div>
+            <div class="opt-block" data-value="ship">
+              <span class="opt-icon">🚢</span><span class="opt-label">Ship</span>
+            </div>
+            <div class="opt-block selected" data-value="rail">
+              <span class="opt-icon">🚆</span><span class="opt-label">Rail</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automation Level -->
+        <div class="frow">
+          <div class="flabel"><span>🤖</span>Automation Level</div>
+          <div class="opt-grid" data-target="b_automation_level">
+            <div class="opt-block" data-value="low">
+              <span class="opt-icon">👷</span><span class="opt-label">Low</span>
+            </div>
+            <div class="opt-block selected" data-value="medium">
+              <span class="opt-icon">⚙️</span><span class="opt-label">Medium</span>
+            </div>
+            <div class="opt-block" data-value="high">
+              <span class="opt-icon">🤖</span><span class="opt-label">High</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carbon Offset -->
+        <div class="frow">
+          <div class="flabel"><span>🌱</span>Carbon Offset</div>
+          <div class="opt-grid" data-target="b_carbon_offset">
+            <div class="opt-block" data-value="none">
+              <span class="opt-icon">❌</span><span class="opt-label">None</span>
+            </div>
+            <div class="opt-block" data-value="moderate">
+              <span class="opt-icon">🌿</span><span class="opt-label">Moderate</span>
+            </div>
+            <div class="opt-block selected" data-value="aggressive">
+              <span class="opt-icon">🌎</span><span class="opt-label">Aggressive</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /Scenario B -->
+
+  </div>
+
+  <!-- ══ RESULTS ══════════════════════════════════════════════════════════ -->
+  <div id="results" class="hidden">
+
+    <!-- Winner Banner -->
+    <div class="wb fu" id="winnerBanner">
+      <div><div class="wb-tag">🏆 Recommended Strategy</div><div class="wb-title" id="winnerTitle">—</div><div class="wb-sub" id="winnerSub">—</div></div>
+      <div class="wb-scores">
+        <div class="wbs"><div class="wbs-val" id="ws-a" style="color:var(--blue);">—</div><div class="wbs-lbl">SCN A</div></div>
+        <div style="font-size:12px;color:var(--text3);">vs</div>
+        <div class="wbs"><div class="wbs-val" id="ws-b" style="color:var(--teal);">—</div><div class="wbs-lbl">SCN B</div></div>
+      </div>
+    </div>
+
+    <!-- Radar + Pillars -->
+    <div class="sec-wrap" id="analytics"><div class="sec-label">Visual Analysis</div><div class="sec-title">Radar & Pillar Scores</div></div>
+    <div class="g2" style="margin-bottom:16px;">
+      <div class="card ca-blue fu">
+        <div class="shine"></div>
+        <div class="cp" style="padding-bottom:12px;">
+          <div class="ch">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="sc-badge sc-a">SCN A</span><div class="card-title">Baseline Analysis</div></div>
+            <div style="text-align:right;"><div class="rso-val" id="balA-val" style="color:var(--blue);">—</div><div class="rso-lbl">Balanced</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="radarA"></canvas></div>
+          <hr class="d"/><div class="pbars" id="pillarsA"></div>
+        </div>
+      </div>
+      <div class="card ca-teal fu fu1">
+        <div class="shine"></div>
+        <div class="cp" style="padding-bottom:12px;">
+          <div class="ch">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="sc-badge sc-b">SCN B</span><div class="card-title">Proposed Analysis</div></div>
+            <div style="text-align:right;"><div class="rso-val" id="balB-val" style="color:var(--teal);">—</div><div class="rso-lbl">Balanced</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="radarB"></canvas></div>
+          <hr class="d"/><div class="pbars" id="pillarsB"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="sec-wrap" id="heatmap"><div class="sec-label">Trade-Off Analysis</div><div class="sec-title">Performance Heatmap</div></div>
+    <div class="g2" style="margin-bottom:16px;">
+      <div class="card fu"><div class="shine"></div><div class="cp"><div class="ch"><div class="ch-left"><div class="card-title">Scenario A · Pillar Health</div></div><span class="sc-badge sc-a">SCN A</span></div><div class="hm-grid" id="hmA"></div></div></div>
+      <div class="card fu fu1"><div class="shine"></div><div class="cp"><div class="ch"><div class="ch-left"><div class="card-title">Scenario B · Pillar Health</div></div><span class="sc-badge sc-b">SCN B</span></div><div class="hm-grid" id="hmB"></div></div></div>
+    </div>
+
+    <!-- Risk -->
+    <div class="sec-wrap" id="risk"><div class="sec-label">Risk Assessment</div><div class="sec-title">Strategic Risk Index</div></div>
+    <div class="card fu" style="margin-bottom:16px;">
+      <div class="shine"></div>
+      <div class="cp">
+        <div class="ch"><div class="ch-left"><div class="card-title">Pillar Imbalance Gauge</div><div class="card-sub">Higher risk = larger spread between Financial, Environmental & Ethical scores</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:center;">
+          <div class="gauge-wrap">
+            <div class="gauge-svg-wrap">
+              <svg width="160" height="92" viewBox="0 0 160 92">
+                <defs><linearGradient id="gga" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#2dd4a0"/><stop offset="50%" stop-color="#f0a444"/><stop offset="100%" stop-color="#f16876"/></linearGradient></defs>
+                <path d="M 12 82 A 68 68 0 0 1 148 82" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10" stroke-linecap="round"/>
+                <path d="M 12 82 A 68 68 0 0 1 148 82" fill="none" stroke="url(#gga)" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+                <line id="needleA" x1="80" y1="82" x2="80" y2="22" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" style="transform-origin:80px 82px;transition:transform 0.9s cubic-bezier(.34,1.1,.64,1);"/>
+                <circle cx="80" cy="82" r="6" fill="var(--blue)" style="filter:drop-shadow(0 0 6px var(--blue))"/>
+              </svg>
+              <div class="gauge-val" id="riskA-val" style="color:var(--blue);">—</div>
+            </div>
+            <span class="sc-badge sc-a">SCN A · Risk</span>
+            <div class="gauge-lbl" id="riskA-label">—</div>
+          </div>
+          <div style="width:1px;background:var(--border);height:100px;"></div>
+          <div class="gauge-wrap">
+            <div class="gauge-svg-wrap">
+              <svg width="160" height="92" viewBox="0 0 160 92">
+                <defs><linearGradient id="ggb" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#2dd4a0"/><stop offset="50%" stop-color="#f0a444"/><stop offset="100%" stop-color="#f16876"/></linearGradient></defs>
+                <path d="M 12 82 A 68 68 0 0 1 148 82" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10" stroke-linecap="round"/>
+                <path d="M 12 82 A 68 68 0 0 1 148 82" fill="none" stroke="url(#ggb)" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+                <line id="needleB" x1="80" y1="82" x2="80" y2="22" stroke="var(--teal)" stroke-width="3" stroke-linecap="round" style="transform-origin:80px 82px;transition:transform 0.9s cubic-bezier(.34,1.1,.64,1);"/>
+                <circle cx="80" cy="82" r="6" fill="var(--teal)" style="filter:drop-shadow(0 0 6px var(--teal))"/>
+              </svg>
+              <div class="gauge-val" id="riskB-val" style="color:var(--teal);">—</div>
+            </div>
+            <span class="sc-badge sc-b">SCN B · Risk</span>
+            <div class="gauge-lbl" id="riskB-label">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projection -->
+    <div class="sec-wrap" id="projection"><div class="sec-label">Strategic Forecasting</div><div class="sec-title">5-Year Value Projection</div></div>
+    <div class="g2" style="margin-bottom:16px;">
+      <div class="card ca-blue fu"><div class="shine"></div><div class="proj-inner" id="projA"></div></div>
+      <div class="card ca-teal fu fu1"><div class="shine"></div><div class="proj-inner" id="projB"></div></div>
+    </div>
+
+    <!-- AI Explanation -->
+    <div class="sec-wrap" id="ai"><div class="sec-label">AI Decision Intelligence</div><div class="sec-title">Strategic Explanation Engine</div></div>
+    <div class="ai-card fu">
+      <div class="ai-badge"><span class="ai-dot"></span>AI Analysis · Decision Engine</div>
+      <span class="ai-quote">"</span>
+      <p class="ai-text" id="explanationText">Analysis will appear after running a simulation…</p>
+    </div>
+
+  </div><!-- /results -->
+</main>
+</div><!-- /shell -->
+
+<script>
+/* ═══════════════ SCORING ENGINE ═══════════════ */
+const SCORES={
+  energy_source:{coal:{f:85,e:10,t:20},hybrid:{f:70,e:55,t:55},solar:{f:55,e:95,t:90}},
+  supplier_type:{low_cost:{f:90,e:25,t:15},local:{f:60,e:70,t:75},esg:{f:65,e:85,t:95}},
+  transport_mode:{air:{f:80,e:15,t:30},ship:{f:70,e:45,t:50},rail:{f:60,e:85,t:75}},
+  automation_level:{low:{f:45,e:55,t:75},medium:{f:70,e:65,t:60},high:{f:90,e:70,t:40}},
+  carbon_offset:{none:{f:90,e:10,t:15},moderate:{f:75,e:60,t:65},aggressive:{f:55,e:95,t:90}},
+};
+function pillarScores(inp){
+  let f=0,e=0,t=0,n=0;
+  for(const[c,v] of Object.entries(inp)){const s=SCORES[c]?.[v];if(s){f+=s.f;e+=s.e;t+=s.t;n++;}}
+  if(!n)return{financial:0,environmental:0,ethical:0};
+  return{financial:Math.round(f/n*10)/10,environmental:Math.round(e/n*10)/10,ethical:Math.round(t/n*10)/10};
+}
+function balancedScore(p,w){
+  const tot=w.financial+w.environmental+w.ethical||1;
+  return Math.round(((w.financial/tot)*p.financial+(w.environmental/tot)*p.environmental+(w.ethical/tot)*p.ethical)*10)/10;
+}
+function riskIndex(p){
+  const v=[p.financial,p.environmental,p.ethical];
+  const m=v.reduce((a,b)=>a+b,0)/3;
+  const std=Math.sqrt(v.map(x=>Math.pow(x-m,2)).reduce((a,b)=>a+b,0)/3);
+  return Math.round(Math.min(100,(std/47)*100)*10)/10;
+}
+function projection(p,bal){
+  const em=1+(p.environmental/100)*0.35,etm=1+(p.ethical/100)*0.25,am=1+(p.financial/100)*0.20;
+  const pv=Math.min(100,bal*em*etm*am);
+  return{base_score:bal,projected_value:Math.round(pv*10)/10,growth_pct:Math.round(((pv-bal)/Math.max(1,bal))*100*10)/10,env_multiplier:+em.toFixed(3),eth_multiplier:+etm.toFixed(3),auto_multiplier:+am.toFixed(3)};
+}
+function generateExplanation(sA,sB,bA,bB,iA,iB){
+  const winner=bA>=bB?'A':'B';
+  const ws=winner==='A'?sA:sB,ls=winner==='A'?sB:sA;
+  const winBal=Math.max(bA,bB),delta=Math.abs(bA-bB).toFixed(1);
+  const strengths=[],drivers=[],weaknesses=[];
+  if(ws.environmental>ls.environmental+10)strengths.push('superior environmental performance');
+  if(ws.ethical>ls.ethical+10)strengths.push('stronger ethical compliance');
+  if(ws.financial>ls.financial+10)strengths.push('competitive financial efficiency');
+  const wi=winner==='A'?iA:iB;
+  if(wi.energy_source==='solar')drivers.push('renewable energy adoption');
+  if(wi.supplier_type==='esg')drivers.push('ESG-compliant supply chain');
+  if(wi.carbon_offset==='aggressive')drivers.push('aggressive carbon offset strategy');
+  if(wi.transport_mode==='rail')drivers.push('low-emission rail logistics');
+  if(ls.environmental<50)weaknesses.push('environmental exposure');
+  if(ls.ethical<50)weaknesses.push('ethical risk factors');
+  const loser=winner==='A'?'B':'A';
+  let txt=`Scenario ${winner} delivers the stronger balanced outcome with a Decision Score of ${winBal} — outperforming Scenario ${loser} by ${delta} points. `;
+  txt+=strengths.length?`This is driven by ${strengths.join(', ')}. `:`This reflects a more balanced pillar distribution. `;
+  if(drivers.length)txt+=`Key drivers include: ${drivers.join(', ')}. `;
+  txt+=`The integrated pillar balance reduces long-term strategic risk while improving stakeholder trust and regulatory readiness.`;
+  if(weaknesses.length)txt+=` Scenario ${loser} shows vulnerability in: ${weaknesses.join(' and ')}.`;
+  txt+=` Executives should consider prioritizing Scenario ${winner} as the default path, with targeted improvements to lower-scoring dimensions over the next 18–24 months.`;
+  return txt;
+}
+
+/* ═══════════════ STATE ═══════════════ */
+let radarA=null,radarB=null,trendChart=null,lastResult=null;
+const trendH={a:[],b:[]};
+
+/* ═══════════════ WEIGHTS ═══════════════ */
+function updateWeights(){
+  const wf=+document.getElementById('wf').value,we=+document.getElementById('we').value,wt=+document.getElementById('wt').value;
+  document.getElementById('wf-d').textContent=wf+'%';document.getElementById('we-d').textContent=we+'%';document.getElementById('wt-d').textContent=wt+'%';
+  document.getElementById('wf-f').style.width=wf+'%';document.getElementById('we-f').style.width=we+'%';document.getElementById('wt-f').style.width=wt+'%';
+  if(lastResult)renderResults(recompute());
+}
+function getW(){return{financial:+document.getElementById('wf').value,environmental:+document.getElementById('we').value,ethical:+document.getElementById('wt').value};}
+function getI(p){return{energy_source:document.getElementById(p+'energy_source').value,supplier_type:document.getElementById(p+'supplier_type').value,transport_mode:document.getElementById(p+'transport_mode').value,automation_level:document.getElementById(p+'automation_level').value,carbon_offset:document.getElementById(p+'carbon_offset').value};}
+function recompute(){
+  const w=getW(),iA=getI('a_'),iB=getI('b_'),sA=pillarScores(iA),sB=pillarScores(iB),bA=balancedScore(sA,w),bB=balancedScore(sB,w);
+  return{scenario_a:{inputs:iA,pillar:sA,balanced:bA,risk_index:riskIndex(sA),projection:projection(sA,bA)},scenario_b:{inputs:iB,pillar:sB,balanced:bB,risk_index:riskIndex(sB),projection:projection(sB,bB)},weights:w,winner:bA>=bB?'A':'B',explanation:generateExplanation(sA,sB,bA,bB,iA,iB)};
+}
+
+/* ═══════════════ SIMULATE ═══════════════ */
+function simulate(){
+  lastResult=recompute();
+  trendH.a.push(lastResult.scenario_a.balanced);trendH.b.push(lastResult.scenario_b.balanced);
+  if(trendH.a.length>12){trendH.a.shift();trendH.b.shift();}
+  document.getElementById('results').classList.remove('hidden');
+  renderResults(lastResult);updateTrend();
+}
+
+/* ═══════════════ RENDER ═══════════════ */
+function renderResults(d){
+  const{scenario_a:a,scenario_b:b,winner,explanation}=d;
+  const delta=Math.abs(a.balanced-b.balanced).toFixed(1);
+  // KPIs
+  document.getElementById('kpi-a').textContent=a.balanced;
+  document.getElementById('kpi-b').textContent=b.balanced;
+  document.getElementById('kpi-winner').textContent='Scenario '+winner+' wins';
+  document.getElementById('kpi-delta').textContent='+'+delta+' pt advantage';
+  const ar=Math.round((a.risk_index+b.risk_index)/2*10)/10;
+  document.getElementById('kpi-risk').textContent=ar;
+  document.getElementById('kpi-risk-lbl').textContent=ar>=70?'⚠ High Risk':ar>=40?'⚡ Moderate':'✓ Low Risk';
+  // Hero
+  document.getElementById('hm-a').textContent=a.balanced;document.getElementById('hm-b').textContent=b.balanced;
+  document.getElementById('hm-pa').textContent=a.projection.projected_value;document.getElementById('hm-pb').textContent=b.projection.projected_value;
+  // Winner bar
+  document.getElementById('winnerTitle').textContent=`Scenario ${winner} is the Stronger Strategy`;
+  document.getElementById('winnerSub').textContent=`${winner==='A'?'Baseline':'Proposed'} outperforms by ${delta} pts on Balanced Decision Score`;
+  document.getElementById('ws-a').textContent=a.balanced;document.getElementById('ws-b').textContent=b.balanced;
+  // Radars
+  renderRadar('radarA',a.pillar,'rgba(91,156,246,0.9)','rgba(91,156,246,0.1)');
+  renderRadar('radarB',b.pillar,'rgba(45,212,160,0.9)','rgba(45,212,160,0.07)');
+  document.getElementById('balA-val').textContent=a.balanced;document.getElementById('balB-val').textContent=b.balanced;
+  renderPillarBars('pillarsA',a.pillar);renderPillarBars('pillarsB',b.pillar);
+  renderHeatmap('hmA',a.pillar);renderHeatmap('hmB',b.pillar);
+  setGauge('needleA','riskA-val','riskA-label',a.risk_index);setGauge('needleB','riskB-val','riskB-label',b.risk_index);
+  renderProjection('projA','A',a.projection,'var(--blue)');renderProjection('projB','B',b.projection,'var(--teal)');
+  document.getElementById('explanationText').textContent=explanation;
+  renderQuickInsight(a,b,winner,delta);
+}
+
+function renderQuickInsight(a,b,winner,delta){
+  const wc=winner==='A'?'var(--blue)':'var(--teal)';
+  const wbg=winner==='A'?'var(--blueg)':'var(--tealg)';
+  const wborder=winner==='A'?'rgba(91,156,246,0.2)':'rgba(45,212,160,0.2)';
+  const ws=winner==='A'?a:b;
+  document.getElementById('quick-insight').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,0.025);border:1px solid var(--border);margin-bottom:12px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:${wbg};border:1px solid ${wborder};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:${wc};flex-shrink:0;">${winner}</div>
+      <div><div style="font-size:13px;font-weight:700;color:var(--text0);">Scenario ${winner} Recommended</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">+${delta} pts over alternative scenario</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      ${[{l:'Financial',v:ws.pillar.financial,c:'var(--amber)'},{l:'Environmental',v:ws.pillar.environmental,c:'var(--teal)'},{l:'Ethical',v:ws.pillar.ethical,c:'var(--violet)'}].map(x=>`
+      <div style="padding:10px 8px;border-radius:8px;background:rgba(255,255,255,0.025);border:1px solid var(--border);text-align:center;">
+        <div style="font-size:18px;font-weight:800;color:${x.c};">${x.v}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.3px;">${x.l}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function updateTrend(){
+  const labels=trendH.a.map((_,i)=>'Run '+(i+1));
+  if(!trendChart){
+    const ctx=document.getElementById('trendChart').getContext('2d');
+    trendChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
+      {label:'Scenario A',data:[...trendH.a],borderColor:'rgba(91,156,246,0.9)',backgroundColor:'rgba(91,156,246,0.07)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#5b9cf6',fill:true,tension:0.4},
+      {label:'Scenario B',data:[...trendH.b],borderColor:'rgba(45,212,160,0.9)',backgroundColor:'rgba(45,212,160,0.05)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#2dd4a0',fill:true,tension:0.4},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#3d5470',font:{family:'IBM Plex Mono',size:10}}},y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#3d5470',font:{family:'IBM Plex Mono',size:10}},border:{display:false}}},
+      plugins:{legend:{labels:{color:'#6e86a0',font:{family:'Outfit',size:11},boxWidth:12,boxHeight:2,pointStyle:false}}},
+      animation:{duration:500,easing:'easeInOutQuart'},
+    }});
+  } else {
+    trendChart.data.labels=labels;trendChart.data.datasets[0].data=[...trendH.a];trendChart.data.datasets[1].data=[...trendH.b];trendChart.update('active');
+  }
+}
+
+function renderRadar(id,p,line,fill){
+  const ctx=document.getElementById(id).getContext('2d');
+  const ex=id==='radarA'?radarA:radarB;if(ex)ex.destroy();
+  const chart=new Chart(ctx,{type:'radar',data:{labels:['Financial','Environmental','Ethical'],datasets:[{data:[p.financial,p.environmental,p.ethical],backgroundColor:fill,borderColor:line,borderWidth:2.5,pointBackgroundColor:line,pointRadius:5,pointHoverRadius:7}]},
+    options:{responsive:true,maintainAspectRatio:true,scales:{r:{min:0,max:100,grid:{color:'rgba(255,255,255,0.06)'},angleLines:{color:'rgba(255,255,255,0.06)'},pointLabels:{color:'#6e86a0',font:{family:'Outfit',size:12,weight:'600'}},ticks:{color:'transparent',backdropColor:'transparent',stepSize:25}}},plugins:{legend:{display:false}},animation:{duration:700,easing:'easeInOutQuart'}}});
+  if(id==='radarA')radarA=chart;else radarB=chart;
+}
+
+function renderPillarBars(id,p){
+  const rows=[{icon:'💰',label:'Financial',val:p.financial,color:'var(--amber)'},{icon:'🌿',label:'Environmental',val:p.environmental,color:'var(--teal)'},{icon:'🤝',label:'Ethical',val:p.ethical,color:'var(--violet)'}];
+  document.getElementById(id).innerHTML=rows.map(r=>`<div class="pb-row"><span style="font-size:13px;">${r.icon}</span><div class="pb-lbl">${r.label}</div><div class="pb-track"><div class="pb-fill" style="width:${r.val}%;background:${r.color};"></div></div><div class="pb-val">${r.val}</div></div>`).join('');
+}
+
+function heatColor(v){
+  if(v>=70)return{bg:'rgba(45,212,160,0.08)',border:'rgba(45,212,160,0.2)',bar:'var(--teal)',tbg:'rgba(45,212,160,0.1)',tc:'var(--teal)',lbl:'Strong'};
+  if(v>=45)return{bg:'rgba(240,164,68,0.07)',border:'rgba(240,164,68,0.18)',bar:'var(--amber)',tbg:'rgba(240,164,68,0.1)',tc:'var(--amber)',lbl:'Moderate'};
+  return{bg:'rgba(241,104,118,0.07)',border:'rgba(241,104,118,0.18)',bar:'var(--red)',tbg:'rgba(241,104,118,0.1)',tc:'var(--red)',lbl:'Weak'};
+}
+function renderHeatmap(id,p){
+  const items=[{label:'Financial',val:p.financial,icon:'💰'},{label:'Environmental',val:p.environmental,icon:'🌿'},{label:'Ethical',val:p.ethical,icon:'🤝'}];
+  document.getElementById(id).innerHTML=items.map(item=>{const c=heatColor(item.val);return`<div class="hmc" style="background:${c.bg};border-color:${c.border};"><div class="hmc-icon">${item.icon}</div><div class="hmc-name">${item.label}</div><div class="hmc-val" style="color:${c.tc};">${item.val}</div><div class="hmc-bar" style="background:${c.bar};opacity:0.35;"></div><div class="hmc-tag" style="background:${c.tbg};color:${c.tc};">${c.lbl}</div></div>`;}).join('');
+}
+
+function setGauge(nid,vid,lid,risk){
+  const deg=-90+(risk/100)*180;
+  document.getElementById(nid).style.transform=`rotate(${deg}deg)`;
+  document.getElementById(vid).textContent=risk;
+  const el=document.getElementById(lid);
+  el.textContent=risk>=70?'⚠ High Risk':risk>=40?'⚡ Moderate Risk':'✓ Low Risk';
+  el.style.color=risk>=70?'var(--red)':risk>=40?'var(--amber)':'var(--teal)';
+}
+
+function renderProjection(id,letter,proj,color){
+  document.getElementById(id).innerHTML=`
+    <div class="proj-h">
+      <div><span class="sc-badge ${letter==='A'?'sc-a':'sc-b'}" style="margin-bottom:8px;display:inline-flex;">SCN ${letter}</span><div style="font-size:11px;color:var(--text3);margin-top:6px;">5-Year Strategic Value</div><div class="proj-big" style="color:${color};">${proj.projected_value}</div></div>
+      <div style="text-align:right;"><div class="proj-growth" style="color:${color};">↑ +${proj.growth_pct}%</div><div style="font-size:10px;color:var(--text3);margin-top:3px;">Projected growth</div></div>
+    </div>
+    <div class="pr-rows">
+      <div class="pr-row"><span class="pr-label">🌿 Env. Cost Savings</span><span class="pr-badge">×${proj.env_multiplier}</span></div>
+      <div class="pr-row"><span class="pr-label">🤝 Brand Trust</span><span class="pr-badge">×${proj.eth_multiplier}</span></div>
+      <div class="pr-row"><span class="pr-label">🤖 Productivity</span><span class="pr-badge">×${proj.auto_multiplier}</span></div>
+      <div class="pr-row"><span class="pr-label" style="color:var(--text3);">Base Score</span><span style="font-family:var(--mono);font-size:12px;color:var(--text1);">${proj.base_score}</span></div>
+    </div>`;
+}
+
+/* ═══════════════ OPTION BLOCK PICKER ═══════════════
+   Handles all .opt-grid clicks.
+   1. Marks the clicked block as selected (deselects siblings).
+   2. Syncs the value to the hidden <select> (preserving getI() reads).
+   3. Calls simulate() — identical to the old onchange="simulate()".
+   All existing JS functions remain completely unchanged.
+════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.opt-grid').forEach(grid => {
+    grid.addEventListener('click', e => {
+      const block = e.target.closest('.opt-block');
+      if (!block) return;
+
+      // 1. Update selected state within this group
+      grid.querySelectorAll('.opt-block').forEach(b => b.classList.remove('selected'));
+      block.classList.add('selected');
+
+      // 2. Sync hidden <select> so getI() reads the correct value
+      const selectId = grid.dataset.target;
+      const sel = document.getElementById(selectId);
+      if (sel) {
+        sel.value = block.dataset.value;
+      }
+
+      // 3. Trigger simulation exactly as the old onchange did
+      simulate();
+    });
+  });
+});
+
+  updateWeights();
+  simulate();
+  document.querySelectorAll('.nav-item').forEach(link=>{
+    link.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(l=>l.classList.remove('active'));link.classList.add('active');});
+  });
+</script>
+</body>
+</html>
