@@ -236,13 +236,3 @@ Possible enhancements:
 # 👨‍💻 Author
 
 Developed as an experimental **decision intelligence and sustainability analytics dashboard** exploring how simulation tools can support more responsible business strategies.
-
----
-
-If you want, I can also give you **3 additional README sections that make GitHub repos look extremely professional**:
-
-1️⃣ **Architecture diagram** (very impressive visually)
-2️⃣ **Screenshots section**
-3️⃣ **Demo GIF section for your dashboard**
-
-These make your repository look **much more advanced to recruiters and hackathon judges**.
