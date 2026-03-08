@@ -144,7 +144,6 @@ Meaning:
 # ✨ Feature Checklist
 
 ✔ Scenario A & Scenario B configuration
-
 ✔ Interactive option blocks (energy, supplier, transport, automation, carbon offset)
 ✔ Financial / Environmental / Ethical pillar scoring
 ✔ CEO priority sliders (live weight adjustment)
